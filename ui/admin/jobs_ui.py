@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from services.job_service import create_job, list_jobs
 from services.vehicle_service import list_vehicles
+from ui.admin.admin_jobs_assign_ui import open_assign_mechanic_ui
 
 def open_jobs_ui():
     def refresh_jobs():
@@ -65,6 +66,19 @@ def open_jobs_ui():
     controls.pack(pady=5)
 
     tk.Button(controls, text="Create Job", command=add_job_dialog).pack(side="left", padx=5)
+
+    def open_assign_window():
+        sel = tree.selection()
+        if not sel:
+            messagebox.showwarning("Select Job", "Please select a job first")
+            return
+        
+        job_id = int(sel[0])
+        open_assign_mechanic_ui(job_id)
+    
+    assign_btn = tk.Button(controls, text="Assign Mechanic", command=open_assign_window)
+    assign_btn.pack(side="left", padx=5)
+
     tk.Button(controls, text="Refresh", command=refresh_jobs).pack(side="left", padx=5)
     tk.Button(controls, text="Close", command=window.destroy).pack(side="left", padx=5)
 
