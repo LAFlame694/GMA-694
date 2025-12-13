@@ -68,3 +68,33 @@ def get_mechanics():
 
     conn.close()
     return rows
+
+def get_jobs_for_mechanic(mechanic_id: int):
+    conn = connect_db()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT jobs.id, vehicles.plate_number, jobs.description, jobs.status
+        FROM jobs
+        JOIN vehicles ON jobs.vehicle_id = vehicles.id
+        WHERE mechanic_id = ?
+        ORDER BY jobs.id DESC
+    """, (mechanic_id,))
+
+    rows = cursor.fetchall()
+    conn.close()
+    return rows
+
+
+def update_job_status(job_id: int, status: str) -> bool:
+    try:
+        conn = connect_db()
+        cursor = conn.cursor()
+
+        cursor.execute("UPDATE jobs SET status = ? WHERE id = ?", (status, job_id))
+
+        conn.commit()
+        conn.close()
+        return True
+    except:
+        return False

@@ -17,7 +17,7 @@ def open_login():
             if role == "admin":
                 open_admin_dashboard()
             elif role == "mechanic":
-                open_mechanic_dashboard()
+                open_mechanic_dashboard(user["id"])
             elif role == "cashier":
                 open_cashier_dashboard()
         else:
