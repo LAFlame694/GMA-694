@@ -51,7 +51,25 @@ def create_tables():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             quantity INTEGER NOT NULL,
-            price REAL NOT NULL
+            price REAL NOT NULL,
+            active INTEGER DEFAULT 1,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+
+        )
+    """)
+
+    # job_parts
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS job_parts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            job_id INTEGER NOT NULL,
+            part_id INTEGER NOT NULL,
+            quantity INTEGER NOT NULL,
+            unit_price REAL NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+            FOREIGN KEY (job_id) REFERENCES jobs(id),
+            FOREIGN KEY (part_id) REFERENCES parts(id)
         )
     """)
 
@@ -59,6 +77,7 @@ def create_tables():
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS invoices (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            job_id INTEGER NOT NULL,
             vehicle_id INTEGER,
             total REAL,
             status TEXT,
