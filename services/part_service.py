@@ -60,9 +60,27 @@ def update_part(part_id: int, name: str, quantity: int, price: float) -> bool:
     except Exception as e:
         print("Update part error:", e)
         return False
-    
-def set_part_actve(part_id: int, active: int) -> bool:
-    """Active / Deactivate a part"""
+
+def update_part(part_id: int, name: str, quantity: int, price: float) -> bool:
+    try:
+        conn = connect_db()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            UPDATE parts
+            SET name = ?, quantity = ?, price = ?
+            WHERE id = ?
+        """, (name, quantity, price, part_id)
+        )
+
+        conn.commit()
+        conn.close()
+        return True
+    except Exception as e:
+        print("Update part errror:", e)
+        return False
+
+def set_part_active(part_id: int, active: int) -> bool:
     try:
         conn = connect_db()
         cursor = conn.cursor()
@@ -77,6 +95,7 @@ def set_part_actve(part_id: int, active: int) -> bool:
         conn.commit()
         conn.close()
         return True
+    
     except Exception as e:
         print("Set part active error:", e)
         return False
