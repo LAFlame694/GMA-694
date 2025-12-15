@@ -93,3 +93,37 @@ def update_invoice_status(invoice_id: int, status: str) -> bool:
         print("Invoice status update error:", e)
         return False
 
+def get_invoice_details(job_id: int):
+    conn = connect_db()
+    cursor = conn.cursor()
+
+    # job + vehicle info
+    cursor.execute("""
+        SELECT 
+            jobs.id,
+            vehicles.plate_number,
+            jobs.description,
+            jobs.status
+        FROM jobs
+        JOIN vehicles ON jobs.vehicle_id = vehicles.id
+        WHERE jobs.id = ?
+    """, (job_id,)
+    )
+    job = cursor.fetchone()
+
+    # parts used
+    cursor.execute("""
+        SELECT
+            parts.name,
+            job_parts.quantity,
+            job_parts.unit_price,
+            (job_parts.quantity * job_parts.unit_price) AS total
+        FROM job_parts
+        JOIN parts ON job_parts.part_id = parts.id
+        WHERE job_parts.job_id = ?
+    """, (job_id,)
+    )
+    parts = cursor.fetchall()
+
+    conn.close()
+    return job, parts

@@ -1,4 +1,4 @@
-from database.migrations.migration_004_add_job_id_to_invoices import migrate as m1
+from database.migrations.migration_005_add_active_to_parts import migrate as m1
 def run_migrations():
     m1()
 
