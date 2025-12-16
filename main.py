@@ -36,8 +36,5 @@ def create_default_users():
 
 create_default_users()
 
-# -------------------------
-# Start the app
-# -------------------------
 if __name__ == "__main__":
     open_login()

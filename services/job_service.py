@@ -161,8 +161,9 @@ def get_parts_used_for_job(job_id: int):
     conn.close()
     return rows
 
-def get_completed_uninvoiced_jobs():
-    conn = connect_db()
+def get_billable_jobs():
+    # completed jobs but not yet invoiced
+    conn= connect_db()
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -174,10 +175,30 @@ def get_completed_uninvoiced_jobs():
         JOIN vehicles ON jobs.vehicle_id = vehicles.id
         LEFT JOIN invoices ON invoices.job_id = jobs.id
         WHERE jobs.status = 'Completed'
-        AND invoices.id IS NULL
+          AND invoices.id IS NULL
         ORDER BY jobs.id DESC
     """)
 
     rows = cursor.fetchall()
     conn.close()
+    return rows
+
+def get_completed_uninvoiced_jobs(): 
+    conn = connect_db() 
+    cursor = conn.cursor() 
+
+    cursor.execute(""" 
+        SELECT 
+            jobs.id, 
+            vehicles.plate_number, 
+            jobs.description 
+        FROM jobs 
+        JOIN vehicles ON jobs.vehicle_id = vehicles.id 
+        LEFT JOIN invoices ON invoices.job_id = jobs.id 
+        WHERE jobs.status = 'Completed' 
+        AND invoices.id IS NULL 
+        ORDER BY jobs.id DESC 
+    """) 
+    rows = cursor.fetchall() 
+    conn.close() 
     return rows

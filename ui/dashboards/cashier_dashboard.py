@@ -3,6 +3,7 @@ from tkinter import ttk, messagebox
 from services.job_service import get_completed_uninvoiced_jobs
 from services.invoice_service import create_invoice
 from ui.cashier.invoices_ui import open_invoice_view
+from ui.cashier.invoice_list_ui import open_invoice_list_window
 
 def open_cashier_dashboard():
     window = tk.Tk()
@@ -99,6 +100,12 @@ def open_cashier_dashboard():
         text="Preview Bill", 
         command=view_invoice
     ).pack(side="left", padx=5)
+
+    tk.Button(
+        window,
+        text="View Invoices",
+        command=open_invoice_list_window
+    ).pack(pady=5)
 
     refresh_jobs()
     window.mainloop()

@@ -17,13 +17,13 @@ def calculate_job_total(job_id: int) -> float:
     return result[0] if result[0] is not None else 0.0
 
 def create_invoice(job_id: int) -> int | None:
-    """Creates an invoice for a completed job.
-    Returns invoice_id on success."""
+    if invoice_exists_for_job(job_id):
+        return None # prevent duplicates
+    
     try:
         conn = connect_db()
         cursor = conn.cursor()
 
-        # get vehicle linked to job
         cursor.execute("SELECT vehicle_id FROM jobs WHERE id = ?", (job_id,))
         row = cursor.fetchone()
         if not row:
@@ -35,15 +35,15 @@ def create_invoice(job_id: int) -> int | None:
 
         cursor.execute("""
             INSERT INTO invoices (job_id, vehicle_id, total, status, created_at)
-            VALUES (?, ?, ?, ?, datetime('now'))
-        """, (job_id, vehicle_id, total, "Pending"))
+            VALUES (?, ?, ?, 'Pending', datetime('now'))
+        """, (job_id, vehicle_id, total)
+        )
 
         invoice_id = cursor.lastrowid
         conn.commit()
         conn.close()
-
         return invoice_id
-
+    
     except Exception as e:
         print("Invoice creation error:", e)
         return None
@@ -127,3 +127,37 @@ def get_invoice_details(job_id: int):
 
     conn.close()
     return job, parts
+
+def invoice_exists_for_job(job_id: int) -> bool:
+    conn = connect_db()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "SELECT id FROM invoices WHERE job_id = ?",
+        (job_id,)
+    )
+
+    row = cursor.fetchone()
+    conn.close()
+
+    return row is not None
+
+def list_invoices():
+    conn = connect_db()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT
+            invoices.id,
+            vehicles.plate_number,
+            invoices.total,
+            invoices.status,
+            invoices.created_at
+        FROM invoices
+        JOIN vehicles ON invoices.vehicle_id = vehicles.id
+        ORDER BY invoices.created_at DESC
+    """)
+
+    rows = cursor.fetchall()
+    conn.close()
+    return rows
