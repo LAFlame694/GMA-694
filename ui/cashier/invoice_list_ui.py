@@ -1,6 +1,7 @@
 import tkinter as tk
 from services.invoice_service import list_invoices, get_invoice, update_invoice_status
 from tkinter import messagebox
+from ui.cashier.invoice_detail_ui import open_invoice_detail_window
 
 def open_invoice_list_window():
     win = tk.Toplevel()
@@ -31,20 +32,7 @@ def open_invoice_list_window():
         index = listbox.curselection()[0]
         invoice_id = invoices[index][0]
 
-        invoice = get_invoice(invoice_id)
-        if not invoices:
-            return
-        
-        info = (
-            f"Invoice ID: {invoice[0]}\n"
-            f"Job ID: {invoice[1]}\n"
-            f"Plate: {invoice[2]}\n"
-            f"Total: KES {invoice[3]}\n"
-            f"Status: {invoice[4]}\n"
-            f"Created: {invoice[5]}"
-        )
-
-        messagebox.showinfo("Invoice Details", info)
+        open_invoice_detail_window(invoice_id)
     
     def mark_paid():
         if not listbox.curselection():
@@ -58,16 +46,16 @@ def open_invoice_list_window():
             win.destroy()
             open_invoice_list_window()
         
-        tk.Button(
-            win,
-            text="View Invoice",
-            command=view_invoice
-        ).pack(pady=5)
+    tk.Button(
+        win,
+        text="View Invoice",
+        command=view_invoice
+    ).pack(pady=5)
 
-        tk.Button(
-            win,
-            text="Mark as Paid",
-            fg="green",
-            command=mark_paid
-        ).pack(pady=5)
+    tk.Button(
+        win,
+        text="Mark as Paid",
+        fg="green",
+        command=mark_paid
+    ).pack(pady=5)
 

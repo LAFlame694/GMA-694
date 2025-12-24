@@ -161,3 +161,46 @@ def list_invoices():
     rows = cursor.fetchall()
     conn.close()
     return rows
+
+def get_invoice_full_details(invoice_id: int):
+    conn = connect_db()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT
+            invoices.id,
+            invoices.status,
+            invoices.total,
+            invoices.created_at,
+            jobs.id,
+            jobs.description,
+            vehicles.plate_number
+        FROM invoices
+        JOIN jobs ON invoices.job_id = jobs.id
+        JOIN vehicles ON invoices.vehicle_id = vehicles.id
+        WHERE invoices.id = ?
+    """, (invoice_id,))
+
+    invoice = cursor.fetchone()
+    if not invoice:
+        conn.close()
+        return None, []
+
+    cursor.execute("""
+        SELECT
+            parts.name,
+            job_parts.quantity,
+            job_parts.unit_price,
+            (job_parts.quantity * job_parts.unit_price) AS total
+        FROM job_parts
+        JOIN parts ON job_parts.part_id = parts.id
+        WHERE job_parts.job_id = (
+            SELECT job_id FROM invoices WHERE id = ?
+        )
+    """, (invoice_id,))
+
+    parts = cursor.fetchall()
+    conn.close()
+
+    return invoice, parts
+

@@ -2,7 +2,6 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from services.job_service import get_completed_uninvoiced_jobs
 from services.invoice_service import create_invoice
-from ui.cashier.invoices_ui import open_invoice_view
 from ui.cashier.invoice_list_ui import open_invoice_list_window
 
 def open_cashier_dashboard():
@@ -59,16 +58,6 @@ def open_cashier_dashboard():
             refresh_jobs()
         else:
             messagebox.showerror("Error", "Failed to create invoice")
-    
-    def view_invoice():
-        selected = tree.selection()
-
-        if not selected:
-            messagebox.showwarning("No Selection", "Please select a job to view its invoice.")
-            return
-        
-        job_id = int(selected[0])
-        open_invoice_view(job_id)
 
     # Controls
     controls = tk.Frame(window)
@@ -93,12 +82,6 @@ def open_cashier_dashboard():
         text="Close",
         command=window.destroy,
         width=12
-    ).pack(side="left", padx=5)
-
-    tk.Button(
-        controls, 
-        text="Preview Bill", 
-        command=view_invoice
     ).pack(side="left", padx=5)
 
     tk.Button(
