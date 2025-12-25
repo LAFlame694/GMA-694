@@ -41,7 +41,7 @@ def open_invoice_list_window():
         index = listbox.curselection()[0]
         invoice_id = invoices[index][0]
 
-        if update_invoice_status(invoice_id, "Paid"):
+        if update_invoice_status(invoice_id, "PAID"):
             messagebox.showinfo("Success", "Invoice marked as Paid")
             win.destroy()
             open_invoice_list_window()

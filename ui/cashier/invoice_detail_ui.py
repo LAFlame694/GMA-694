@@ -1,7 +1,8 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from services.invoice_service import get_invoice_full_details
-from  services.payment_service import get_payments_for_invoice, add_payment
+from services.payment_service import get_payments_for_invoice, add_payment
+from ui.cashier.receipt_ui import open_receipt_window
 
 def open_invoice_detail_window(invoice_id: int):
     invoice, parts = get_invoice_full_details(invoice_id)
@@ -21,7 +22,7 @@ def open_invoice_detail_window(invoice_id: int):
 
     win = tk.Toplevel()
     win.title(f"Invoice #{inv_id}")
-    win.geometry("750x550")
+    win.geometry("750x650")
 
     # Header
     tk.Label(
@@ -106,6 +107,12 @@ def open_invoice_detail_window(invoice_id: int):
         text="Record Payment",
         command=process_payment
     ).grid(row=1, columnspan=2, pady=10)
+
+    ttk.Button(
+        payment_frame,
+        text="View Receipt",
+        command=lambda: open_receipt_window(invoice_id)
+    ).grid(row=2)
 
     tk.Button(
         win,

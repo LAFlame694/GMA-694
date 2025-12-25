@@ -35,7 +35,7 @@ def create_invoice(job_id: int) -> int | None:
 
         cursor.execute("""
             INSERT INTO invoices (job_id, vehicle_id, total, status, created_at)
-            VALUES (?, ?, ?, 'Pending', datetime('now'))
+            VALUES (?, ?, ?, 'PENDING', datetime('now'))
         """, (job_id, vehicle_id, total)
         )
 
@@ -72,7 +72,7 @@ def get_invoice(invoice_id: int):
 
 def update_invoice_status(invoice_id: int, status: str) -> bool:
     """Updates invoice payment status."""
-    if status not in ("Pending", "Partial", "Paid"):
+    if status not in ("PENDING", "PARTIAL", "PAID"):
         return False
     
     try:
