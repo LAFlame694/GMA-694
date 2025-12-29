@@ -2,7 +2,7 @@ import tkinter as tk
 from services.auth_service import login_user
 from ui.dashboards.admin_dashboard import open_admin_dashboard
 from ui.dashboards.mechanic_dashboard import open_mechanic_dashboard
-from ui.dashboards.cashier_dashboard import open_cashier_dashboard
+from ui.dashboards.cashier_dashboard import User
 
 def open_login():
     def handle_login():
@@ -19,7 +19,7 @@ def open_login():
             elif role == "mechanic":
                 open_mechanic_dashboard(user["id"])
             elif role == "cashier":
-                open_cashier_dashboard()
+                User()
         else:
             status_label.config(text="Invalid username or password", fg="red")
 
