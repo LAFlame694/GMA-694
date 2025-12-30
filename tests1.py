@@ -205,49 +205,6 @@ class UI:
 
        # grid the button
        button.grid(**grid_options)
-    
-   def create_button_pack(self, window, text="", **kwargs):
-        # extract button specific properties from kwargs
-        button_kwargs = {}
-        button_properties = [
-        'command', 'bg', 'fg', 'font', 'width', 'height',
-        'relief', 'borderwidth', 'image', 'compound',
-        'state', 'cursor', 'takefocus', 'underline',
-        'activebackground', 'activeforeground',
-        'disabledforeground', 'highlightbackground',
-        'highlightcolor', 'highlightthickness',
-        'textvariable', 'background', 'foreground'
-        ]
-
-        for prop in button_properties:
-            if prop in kwargs:
-                if prop == 'background':
-                    button_kwargs['bg'] = kwargs.pop(prop)
-                elif prop == 'foreground':
-                    button_kwargs['fg'] = kwargs.pop(prop)
-                else:
-                    button_kwargs[prop] = kwargs.pop(prop)
-
-        # create the button
-        button = tk.Button(window, text=text, **button_kwargs)
-
-        # set default grid values
-        pack_defaults = {
-            'side': 'top',
-            'fill': 'none',
-            'expand': False,
-            'anchor': 'center',
-            'padx': 0,
-            'pady': 0,
-            'ipadx': 0,
-            'ipady': 0
-        }
-
-        # update defaults with user provided values
-        pack_options = {**pack_defaults, **kwargs}
-
-        # grid the button
-        button.pack(**pack_options)
 
 # User:
 class User:
@@ -276,10 +233,10 @@ class User:
        ) = invoice
 
        # update labels
-       self.vehicle_plate_label = self.ui.create_label_pack(self.invoice_detail_wrapper, f'Vehicle: {plate}', fg='#000000', font=("Comic Sans MS", 10, "bold"), anchor='w')
-       self.job_desc_label = self.ui.create_label_pack(self.invoice_detail_wrapper, f'Job: {job_desc}', fg='#000000', font=("Comic Sans MS", 10, "bold"), anchor='w')
-       self.status_label = self.ui.create_label_pack(self.invoice_detail_wrapper, f'Status: {status}', fg='#000000', font=("Comic Sans MS", 10, "bold"), anchor='w')
-       self.created_label = self.ui.create_label_pack(self.invoice_detail_wrapper, f'Created: {created_at}', fg='#000000', font=("Comic Sans MS", 10, "bold"), anchor='w')
+       self.vehicle_plate_label = self.ui.create_label_pack(self.invoice_detail_wrapper, f'Vehicle: {plate}', bg='#FF0080', fg='#000000', font=("Comic Sans MS", 10, "bold"), anchor='w')
+       self.job_desc_label = self.ui.create_label_pack(self.invoice_detail_wrapper, f'Job: {job_desc}', bg='#FF0080', fg='#000000', font=("Comic Sans MS", 10, "bold"), anchor='w')
+       self.status_label = self.ui.create_label_pack(self.invoice_detail_wrapper, f'Status: {status}', bg='#FF0080', fg='#000000', font=("Comic Sans MS", 10, "bold"), anchor='w')
+       self.created_label = self.ui.create_label_pack(self.invoice_detail_wrapper, f'Created: {created_at}', bg='#FF0080', fg='#000000', font=("Comic Sans MS", 10, "bold"), anchor='w')
 
        # part list
        self.listbox2.delete(0, tk.END)
@@ -341,85 +298,39 @@ class User:
            "role": "Cashier"
        }
 
-       self.top_bar_frame = self.ui.create_frame_pack(self.mainWindow, height=80, fill='x', bg='#408080')
+       self.top_bar_frame = self.ui.creat_frame(self.mainWindow, 0, 0, 1200, 80, '#408080')
+       self.logout_btn = self.ui.creat_button(self.top_bar_frame, 'Logout', 1050, 20, 100, 30, '#0080FF', '#000000', self.logout)
+       self.title_label = self.ui.creat_label(self.top_bar_frame, f"Logged in as: {self.current_user['username']}", 0, 0,500, 80, '#D3D3D3', '#000000', 20)
 
-       self.logout_btn = self.ui.create_button_pack(
-           self.top_bar_frame, 
-           'Logout', 
-           borderwidth=5, 
-           relief='sunken', 
-           padx=30, 
-           pady=10, 
-           bg='red', 
-           fg='#ffffff', 
-           command=self.logout, 
-           anchor='e', 
-           font=("Comic Sans MS", 10, "bold")
-        )
+       self.main_frame = self.ui.creat_frame(self.mainWindow, 0, 80, 1200, 620, '#D3D3D3')
+
+
+       self.invoice_list_frame = self.ui.creat_frame(self.main_frame, 0, 0, 550, 620, '#D3D3D3')
+       self.invoice_list_label = self.ui.creat_label(self.invoice_list_frame, 'Invoices', 0, 10,550, 30, '#FF0080', '#000000', 10)
+
+       self.invoice_detail_frame = self.ui.creat_frame(self.main_frame, 650, 0, 550, 380, '#D3D3D3')
+
+       self.invoice_detail_label = self.ui.create_label_pack(self.invoice_detail_frame, 'Invoice Details', bg='#FF0080', fg='#000000', font=("Comic Sans MS", 10, "bold"), anchor='center')
        
-       self.title_label = self.ui.create_label_pack(self.top_bar_frame, f"Logged in as: {self.current_user['username']}", fg='#000000', anchor='w')
+       self.invoice_detail_wrapper = self.ui.create_labelframe_pack(self.invoice_detail_frame, "Details Wrapper",borderwidth=2, width=550, height=180, anchor='w', fill='x')
 
-       # Main frame
-       self.main_frame = self.ui.create_frame_pack(self.mainWindow, bg='#D3D3D3', expand=True, fill='both')
+       self.part_list_frame = self.ui.create_labelframe_pack(self.invoice_detail_frame, 'Part List', borderwidth=2, width=550, height=200)
+       self.grand_total_label = self.ui.create_label_pack(self.invoice_detail_frame, f'Grand Total: ', bg='#FF0080', fg='#000000', font=("Comic Sans MS", 10, "bold"), anchor='w')
 
-       # Invoice list frame
-       self.invoice_list_frame = self.ui.create_frame_pack(
-           self.main_frame, 
-           bg="#008080",
-           side='left',
-           fill='both',
-           expand=True,
-           padx=(10, 5),
-           pady=10,
-           borderwidth=10,
-           relief="ridge"
-        )
-       
-       # Right side frame
-       self.right_side_frame = self.ui.create_frame_pack(
-           self.main_frame, 
-           bg="#008080",
-           side='right',
-           fill='both',
-           expand=True,
-           padx=(5, 10),
-           pady=10,
-           borderwidth=10,
-           relief="ridge"
-        )
-       
-       # Configure grid weights
-       self.main_frame.grid_columnconfigure(0, weight=1) # left frame
-       self.main_frame.grid_columnconfigure(0, weight=1) # right frame
+       self.actions_payments_frame = self.ui.creat_frame(self.main_frame, 650, 380, 550, 240, '#D3D3D3')
+       self.payment_list_frame = self.ui.create_labelframe_pack(self.actions_payments_frame, 'Payments', bg='lightblue', relief='ridge', height=80, width=550)
 
-       # invoice_list_frame setup...
-       self.invoice_list_label = self.ui.create_label_pack(self.invoice_list_frame, 'Invoices', fg='#000000', font=("Comic Sans MS", 10, "bold"), anchor='center')
-       self.listbox_frame = self.ui.create_frame_pack(self.invoice_list_frame, fill='both', expand=True)
+       self.balance_summery = self.ui.create_labelframe_pack(self.actions_payments_frame, 'Balance Summery', bg='lightblue', relief='ridge', height=100, width=550, anchor='w', fill="x")
+       self.total_label = self.ui.create_label_pack(self.balance_summery, f'Total:', bg='#FF0080', fg='#000000', font=("Comic Sans MS", 10, "bold"), anchor='w')
+       self.paid_label = self.ui.create_label_pack(self.balance_summery, f'Paid:', bg='#FF0080', fg='#000000', font=("Comic Sans MS", 10, "bold"), anchor='w')
+       self.balance_label = self.ui.create_label_pack(self.balance_summery, f'Balance:', bg='#FF0080', fg='#000000', font=("Comic Sans MS", 10, "bold"), anchor='w')
 
-       # right_side_frame setup...
-       self.invoice_detail_frame = self.ui.create_frame_pack(self.right_side_frame, fill='both', expand=True)
-
-       self.invoice_detail_label = self.ui.create_label_pack(self.invoice_detail_frame, 'Invoice Details', fg='#000000', font=("Comic Sans MS", 10, "bold"), anchor='center')
-       
-       self.invoice_detail_wrapper = self.ui.create_labelframe_pack(self.invoice_detail_frame, "Details Wrapper",borderwidth=5, expand=True, anchor='w', fill='both')
-
-       self.part_list_frame = self.ui.create_labelframe_pack(self.invoice_detail_frame, 'Part List', borderwidth=5, fill='both', expand=True)
-       self.grand_total_label = self.ui.create_label_pack(self.invoice_detail_frame, f'Grand Total: ',  fg='#000000', font=("Comic Sans MS", 10, "bold"), anchor='w')
-
-       self.actions_payments_frame = self.ui.create_frame_pack(self.right_side_frame, bg='#D3D3D3', fill='both', expand=True)
-       self.payment_list_frame = self.ui.create_labelframe_pack(self.actions_payments_frame, 'Payments', relief='ridge', fill='both', expand=True, borderwidth=5)
-
-       self.balance_summery = self.ui.create_labelframe_pack(self.actions_payments_frame, 'Balance Summery', relief='ridge', fill='both', expand=True, anchor='w', borderwidth=5)
-       self.total_label = self.ui.create_label_pack(self.balance_summery, f'Total:', fg='#000000', font=("Comic Sans MS", 10, "bold"), anchor='w')
-       self.paid_label = self.ui.create_label_pack(self.balance_summery, f'Paid:', fg='#000000', font=("Comic Sans MS", 10, "bold"), anchor='w')
-       self.balance_label = self.ui.create_label_pack(self.balance_summery, f'Balance:', fg='#000000', font=("Comic Sans MS", 10, "bold"), anchor='w')
-
-       self.action_btn_frame = self.ui.create_labelframe_pack(self.actions_payments_frame, 'Actions', relief='ridge', fill='both', expand=True, anchor='w', borderwidth=5)
-       self.record_payment_btn = self.ui.create_button_grid(self.action_btn_frame, 'Record Payment', row=0, column=0, padx=10, pady=20, bg="#0080FF", fg='#ffffff', borderwidth=5, relief='sunken', font=("Comic Sans MS", 10, "bold"))
-       self.view_receipt_btn = self.ui.create_button_grid(self.action_btn_frame, 'View Receipt', row=0, column=1, padx=10, pady=20, bg="#0080FF", fg='#ffffff', borderwidth=5, relief='sunken', font=("Comic Sans MS", 10, "bold"))
-       self.mark_paid_btn = self.ui.create_button_grid(self.action_btn_frame, 'Mark as Paid', row=0, column=2, padx=10, pady=20, bg="#0080FF", fg='#ffffff', borderwidth=5, relief='sunken', font=("Comic Sans MS", 10, "bold"))
-       self.create_invoice_btn = self.ui.create_button_grid(self.action_btn_frame, 'Create Invoice', row=0, column=3, padx=10, pady=20, bg="#0080FF", fg='#ffffff', borderwidth=5, relief='sunken', font=("Comic Sans MS", 10, "bold"))
-       self.refresh_btn = self.ui.create_button_grid(self.action_btn_frame, 'Refresh', row=0, column=4, padx=10, pady=20, bg="#0080FF", fg='#ffffff', borderwidth=5, relief='sunken', font=("Comic Sans MS", 10, "bold"))
+       self.action_btn_frame = self.ui.create_labelframe_pack(self.actions_payments_frame, 'Actions', bg='lightblue', relief='ridge', height=70, width=550, anchor='w', fill="x")
+       self.record_payment_btn = self.ui.create_button_grid(self.action_btn_frame, 'Record Payment', row=0, column=0, padx=10, pady=20, bg="#0080FF")
+       self.view_receipt_btn = self.ui.create_button_grid(self.action_btn_frame, 'View Receipt', row=0, column=1, padx=10, pady=20, bg="#0080FF")
+       self.mark_paid_btn = self.ui.create_button_grid(self.action_btn_frame, 'Mark as Paid', row=0, column=2, padx=10, pady=20, bg="#0080FF")
+       self.create_invoice_btn = self.ui.create_button_grid(self.action_btn_frame, 'Create Invoice', row=0, column=3, padx=10, pady=20, bg="#0080FF")
+       self.refresh_btn = self.ui.create_button_grid(self.action_btn_frame, 'Refresh', row=0, column=4, padx=10, pady=20, bg="#0080FF")
 
        # list_box
        self.listbox3 = self.ui.creat_listbox(self.payment_list_frame, 0, 0, 550, 100, '#FFFFFF', '#000000',self.on_listbox3_select_changed)
@@ -430,7 +341,7 @@ class User:
        self.items=["item1"]
        self.on_listbox2_set_items(self.items)
 
-       self.listbox1 = self.ui.creat_listbox(self.listbox_frame, 0, 0, 550, 500, '#FFFFFF', '#000000',self.on_listbox1_select_changed)
+       self.listbox1 = self.ui.creat_listbox(self.invoice_list_frame, 0, 50, 550, 580, '#FFFFFF', '#000000',self.on_listbox1_select_changed)
        self.load_invoices()
     
     # Functions:
