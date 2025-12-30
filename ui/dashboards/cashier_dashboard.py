@@ -41,11 +41,20 @@ class UI:
        control.place(x = x, y = y, width = width, height=height)
        return control
    
-   def creat_listbox(self, window, x, y, width, height, bg, fg, command):
-       control = tk.Listbox(window,  bg=bg, fg=fg)
-       control.place(x = x, y = y, width = width, height=height)
-       control.bind("<<ListboxSelect>>", command)
-       return control
+   def creat_listbox(self, window, x, y, width, height, bg, fg, command, font=None):
+        # Create a container frame for better size control
+        container = tk.Frame(window, width=width, height=height)
+        container.pack_propagate(False)  # Prevent container from shrinking
+        container.pack(padx=x, pady=y)
+        
+        # Set default font if none provided
+        if font is None:
+            font = ('Arial', 10)  # Default font
+        
+        control = tk.Listbox(container, bg=bg, fg=fg, font=font)
+        control.pack(fill='both', expand=True)
+        control.bind("<<ListboxSelect>>", command)
+        return control
    
    def create_label_pack(self, window, text, **kwargs):
         # extract label-specific properties from kwargs
@@ -251,6 +260,22 @@ class UI:
 
 # User:
 class User:
+   def load_available_jobs(self):
+       from services.job_service import get_completed_uninvoiced_jobs
+
+       self.listbox4.delete(0, tk.END)
+       self.job_map = {}
+
+       jobs = get_completed_uninvoiced_jobs()
+
+       for index, job in enumerate(jobs):
+           job_id, plate, desc = job
+           
+           display = f"JOB {job_id} | {plate} |  {desc}"
+           self.listbox4.insert(tk.END, display)
+
+           self.job_map[index] = job_id
+
    def clear_frame(self, frame):
        for widget in frame.winfo_children():
            widget.destroy()
@@ -333,7 +358,7 @@ class User:
 
    def init_ui(self):
        self.ui = UI()
-       self.mainWindow = self.ui.creat_window("mainWindow", 1200, 700,'#D3D3D3')
+       self.mainWindow = self.ui.creat_window("mainWindow", 1250, 700,'#D3D3D3')
 
        self.current_user = {
            "id": 1,
@@ -395,6 +420,7 @@ class User:
        # invoice_list_frame setup...
        self.invoice_list_label = self.ui.create_label_pack(self.invoice_list_frame, 'Invoices', fg='#000000', font=("Comic Sans MS", 10, "bold"), anchor='center')
        self.listbox_frame = self.ui.create_frame_pack(self.invoice_list_frame, fill='both', expand=True)
+       self.job_list_frame = self.ui.create_labelframe_pack(self.invoice_list_frame, 'Job List', borderwidth=5, expand=True, fill='both')
 
        # right_side_frame setup...
        self.invoice_detail_frame = self.ui.create_frame_pack(self.right_side_frame, fill='both', expand=True)
@@ -422,16 +448,19 @@ class User:
        self.refresh_btn = self.ui.create_button_grid(self.action_btn_frame, 'Refresh', row=0, column=4, padx=10, pady=20, bg="#0080FF", fg='#ffffff', borderwidth=5, relief='sunken', font=("Comic Sans MS", 10, "bold"))
 
        # list_box
-       self.listbox3 = self.ui.creat_listbox(self.payment_list_frame, 0, 0, 550, 100, '#FFFFFF', '#000000',self.on_listbox3_select_changed)
+       self.listbox3 = self.ui.creat_listbox(self.payment_list_frame, 0, 0, 550, 80, '#FFFFFF', '#000000', self.on_listbox3_select_changed, font=("Comic Sans MS", 10))
        self.items=["item1"]
        self.on_listbox3_set_items(self.items)
 
-       self.listbox2 = self.ui.creat_listbox(self.part_list_frame, 0, 0, 550, 200, '#FFFFFF', '#000000',self.on_listbox2_select_changed)
+       self.listbox2 = self.ui.creat_listbox(self.part_list_frame, 0, 0, 550, 80, '#FFFFFF', '#000000', self.on_listbox2_select_changed, font=("Comic Sans MS", 10))
        self.items=["item1"]
        self.on_listbox2_set_items(self.items)
 
-       self.listbox1 = self.ui.creat_listbox(self.listbox_frame, 0, 0, 550, 500, '#FFFFFF', '#000000',self.on_listbox1_select_changed)
+       self.listbox1 = self.ui.creat_listbox(self.listbox_frame, 0, 0, 550, 250, '#FFFFFF', '#000000', self.on_listbox1_select_changed, font=("Comic Sans MS", 10))
        self.load_invoices()
+
+       self.listbox4 = self.ui.creat_listbox(self.job_list_frame, 0, 0, 550, 150, '#FFFFFF', '#000000', self.on_listbox4_select_changed, font=("Comic Sans MS", 10))
+       self.load_available_jobs()
     
     # Functions:
     # listbox1
@@ -468,6 +497,16 @@ class User:
        selected_index = self.listbox3.curselection()
        if selected_index:
            selected_item = self.listbox3.get(selected_index)
+           self.ui.show_message(f"{selected_item} selected")
+    
+   def on_listbox4_set_items(self,items):
+       self.listbox4.delete(0, tk.END)
+       for item in items:
+           self.listbox4.insert(tk.END, item)
+   def on_listbox4_select_changed(self,event):
+       selected_index = self.listbox4.curselection()
+       if selected_index:
+           selected_item = self.listbox4.get(selected_index)
            self.ui.show_message(f"{selected_item} selected")
 
 # Functions:
