@@ -258,8 +258,128 @@ class UI:
         # grid the button
         button.pack(**pack_options)
 
+   def create_entry(self, parent,
+
+           # appearances properties
+           bg='white', fg='black',
+           font=('Comic Sans MS', 10),
+           borderwidth=2, relief='ridge',
+           cursor='xterm',
+
+           # text properties
+           textvariable=None,
+           show=None,
+           state='normal',
+           justify='left',
+
+           # validation
+           validate=None,
+           validatecommand=None,
+           invalidcommand=None,
+
+           # packing options
+           pack_options=None,
+
+           # event binding
+           on_enter=None,
+           on_focusin=None,
+           on_focusout=None,
+
+           # place holder functionality
+           placeholder_text="",
+           placeholder_color='grey'
+        ):
+       entry = tk.Entry(
+           parent,
+           bg=bg,
+           fg=fg,
+           font=font,
+           borderwidth=borderwidth,
+           relief=relief,
+           cursor=cursor,
+           textvariable=textvariable,
+           show=show,
+           state=state,
+           justify=justify,
+           validate=validate,
+           validatecommand=validatecommand,
+           invalidcommand=invalidcommand
+       )
+
+       # default packing options
+       default_pack_options = {
+           'fill': 'none',
+           'expand': False,
+           'padx': 10,
+           'pady': 5,
+           'ipadx': 0,
+           'ipady': 0,
+           'side': 'top',
+           'anchor': 'w'
+       }
+
+       # update with user options
+       if pack_options:
+           default_pack_options.update(pack_options)
+        
+       entry.pack(**default_pack_options)
+       return entry
+
 # User:
 class User:
+   def record_payment(self):
+       if not hasattr(self, "current_invoice_id") or not self.current_invoice_id:
+           self.ui.show_message(
+               "Please select an invoice first",
+               "No invoice Selected",
+               style=1
+           )
+           return
+       
+       amount_text = self.payment_entry.get().strip()
+       if not amount_text:
+           self.ui.show_message(
+               "Please enter payment amount",
+               "Missing Amount",
+               style=1
+           )
+           return
+       
+       try:
+           amount = float(amount_text)
+           if amount <= 0:
+               raise ValueError
+       except ValueError:
+           self.ui.show_message(
+               "Enter a valid positive number",
+               "Invalid Amount",
+               style=2
+            )
+           return
+       
+       from services.payment_service import add_payment
+
+       try:
+           paid_total, balance, status = add_payment(self.current_invoice_id, amount)
+       except Exception as e:
+           self.ui.show_message(
+               "Failed to record payment",
+               "Error",
+               style=2
+           )
+           return
+       
+       self.ui.show_message(
+           f"Payment recorded successfully\n"
+           f"Status: {status}\n"
+           f"Balance: KES {balance:.2f}"
+       )
+
+       self.payment_entry.delete(0, tk.END)
+
+       self.load_invoice_details(self.current_invoice_id)
+       self.load_invoices()
+
    def load_available_jobs(self):
        from services.job_service import get_completed_uninvoiced_jobs
 
@@ -352,13 +472,28 @@ class User:
            self.listbox1.insert(tk.END, display_text)
 
            self.invoice_map[index] = invoice_id
+   def create_invoice_action(self):
+       if not hasattr(self, "selected_job_id"):
+           self.ui.show_message("Please select a job first", "No job selected", style=1)
+           return
+       
+       from services.invoice_service import create_invoice
+
+       invoice_id = create_invoice(self.selected_job_id)
+
+       if invoice_id:
+           self.ui.show_message(f"Invoice #{invoice_id} created successfully")
+           self.load_invoices()
+           self.load_available_jobs()
+       else:
+           self.ui.show_message("Failed to create invoice", style=2)
 
    def __init__(self):
        self.init_ui()
 
    def init_ui(self):
        self.ui = UI()
-       self.mainWindow = self.ui.creat_window("mainWindow", 1250, 700,'#D3D3D3')
+       self.mainWindow = self.ui.creat_window("mainWindow", 1250, 800,'#D3D3D3')
 
        self.current_user = {
            "id": 1,
@@ -366,7 +501,7 @@ class User:
            "role": "Cashier"
        }
 
-       self.top_bar_frame = self.ui.create_frame_pack(self.mainWindow, height=80, fill='x', bg='#408080')
+       self.top_bar_frame = self.ui.create_frame_pack(self.mainWindow, height=40, fill='x', bg='#408080')
 
        self.logout_btn = self.ui.create_button_pack(
            self.top_bar_frame, 
@@ -382,10 +517,17 @@ class User:
            font=("Comic Sans MS", 10, "bold")
         )
        
-       self.title_label = self.ui.create_label_pack(self.top_bar_frame, f"Logged in as: {self.current_user['username']}", fg='#000000', anchor='w')
+       self.title_label = self.ui.create_label_pack(self.top_bar_frame, f"Logged in as: {self.current_user['username']}", fg='#ffffff', anchor='w', bg='#408080', font=("Comic Sans MS", 20, 'bold'))
 
        # Main frame
-       self.main_frame = self.ui.create_frame_pack(self.mainWindow, bg='#D3D3D3', expand=True, fill='both')
+       self.main_frame = self.ui.create_frame_pack(
+           self.mainWindow, 
+           bg='#00FFFF', 
+           expand=True, 
+           fill='both',
+           borderwidth=5,
+           relief='ridge'
+        )
 
        # Invoice list frame
        self.invoice_list_frame = self.ui.create_frame_pack(
@@ -420,39 +562,67 @@ class User:
        # invoice_list_frame setup...
        self.invoice_list_label = self.ui.create_label_pack(self.invoice_list_frame, 'Invoices', fg='#000000', font=("Comic Sans MS", 10, "bold"), anchor='center')
        self.listbox_frame = self.ui.create_frame_pack(self.invoice_list_frame, fill='both', expand=True)
-       self.job_list_frame = self.ui.create_labelframe_pack(self.invoice_list_frame, 'Job List', borderwidth=5, expand=True, fill='both')
+       self.job_list_frame = self.ui.create_labelframe_pack(self.invoice_list_frame, 'Job List', borderwidth=5, expand=True, fill='both', font=("Comic Sans MS", 10, 'bold'), fg='dodgerblue')
 
        # right_side_frame setup...
        self.invoice_detail_frame = self.ui.create_frame_pack(self.right_side_frame, fill='both', expand=True)
 
        self.invoice_detail_label = self.ui.create_label_pack(self.invoice_detail_frame, 'Invoice Details', fg='#000000', font=("Comic Sans MS", 10, "bold"), anchor='center')
        
-       self.invoice_detail_wrapper = self.ui.create_labelframe_pack(self.invoice_detail_frame, "Details Wrapper",borderwidth=5, expand=True, anchor='w', fill='both')
+       self.invoice_detail_wrapper = self.ui.create_labelframe_pack(self.invoice_detail_frame, "Details Wrapper",borderwidth=5, expand=True, anchor='w', fill='both', font=("Comic Sans MS", 10, 'bold'), fg='dodgerblue')
 
-       self.part_list_frame = self.ui.create_labelframe_pack(self.invoice_detail_frame, 'Part List', borderwidth=5, fill='both', expand=True)
+       self.part_list_frame = self.ui.create_labelframe_pack(self.invoice_detail_frame, 'Part List', borderwidth=5, fill='both', expand=True, font=("Comic Sans MS", 10, 'bold'), fg='dodgerblue')
        self.grand_total_label = self.ui.create_label_pack(self.invoice_detail_frame, f'Grand Total: ',  fg='#000000', font=("Comic Sans MS", 10, "bold"), anchor='w')
 
        self.actions_payments_frame = self.ui.create_frame_pack(self.right_side_frame, bg='#D3D3D3', fill='both', expand=True)
-       self.payment_list_frame = self.ui.create_labelframe_pack(self.actions_payments_frame, 'Payments', relief='ridge', fill='both', expand=True, borderwidth=5)
+       self.payment_list_frame = self.ui.create_labelframe_pack(self.actions_payments_frame, 'Payments', relief='ridge', fill='both', expand=True, borderwidth=5, font=("Comic Sans MS", 10, 'bold'), fg='dodgerblue')
 
-       self.balance_summery = self.ui.create_labelframe_pack(self.actions_payments_frame, 'Balance Summery', relief='ridge', fill='both', expand=True, anchor='w', borderwidth=5)
+       self.listbox3 = self.ui.creat_listbox(self.payment_list_frame, 0, 0, 550, 50, '#FFFFFF', '#000000', self.on_listbox3_select_changed, font=("Comic Sans MS", 10))
+
+       self.record_payment_btn = self.ui.create_button_pack(
+           self.payment_list_frame,
+           'Record Payment', 
+           borderwidth=2, 
+           relief='sunken', 
+           padx=10, 
+           pady=7, 
+           bg='red', 
+           fg='#ffffff', 
+           command=self.record_payment, 
+           anchor='w', 
+           font=("Comic Sans MS", 10, "bold")
+        )
+       
+       self.payment_entry = self.ui.create_entry(self.payment_list_frame)
+
+       self.balance_summery = self.ui.create_labelframe_pack(self.actions_payments_frame, 'Balance Summery', relief='ridge', fill='both', expand=True, anchor='w', borderwidth=5, font=("Comic Sans MS", 10, 'bold'), fg='dodgerblue')
        self.total_label = self.ui.create_label_pack(self.balance_summery, f'Total:', fg='#000000', font=("Comic Sans MS", 10, "bold"), anchor='w')
        self.paid_label = self.ui.create_label_pack(self.balance_summery, f'Paid:', fg='#000000', font=("Comic Sans MS", 10, "bold"), anchor='w')
        self.balance_label = self.ui.create_label_pack(self.balance_summery, f'Balance:', fg='#000000', font=("Comic Sans MS", 10, "bold"), anchor='w')
 
-       self.action_btn_frame = self.ui.create_labelframe_pack(self.actions_payments_frame, 'Actions', relief='ridge', fill='both', expand=True, anchor='w', borderwidth=5)
-       self.record_payment_btn = self.ui.create_button_grid(self.action_btn_frame, 'Record Payment', row=0, column=0, padx=10, pady=20, bg="#0080FF", fg='#ffffff', borderwidth=5, relief='sunken', font=("Comic Sans MS", 10, "bold"))
-       self.view_receipt_btn = self.ui.create_button_grid(self.action_btn_frame, 'View Receipt', row=0, column=1, padx=10, pady=20, bg="#0080FF", fg='#ffffff', borderwidth=5, relief='sunken', font=("Comic Sans MS", 10, "bold"))
-       self.mark_paid_btn = self.ui.create_button_grid(self.action_btn_frame, 'Mark as Paid', row=0, column=2, padx=10, pady=20, bg="#0080FF", fg='#ffffff', borderwidth=5, relief='sunken', font=("Comic Sans MS", 10, "bold"))
-       self.create_invoice_btn = self.ui.create_button_grid(self.action_btn_frame, 'Create Invoice', row=0, column=3, padx=10, pady=20, bg="#0080FF", fg='#ffffff', borderwidth=5, relief='sunken', font=("Comic Sans MS", 10, "bold"))
+       self.action_btn_frame = self.ui.create_labelframe_pack(self.actions_payments_frame, 'Actions', relief='ridge', fill='both', expand=True, anchor='w', borderwidth=5, font=("Comic Sans MS", 10, 'bold'), fg='dodgerblue')
+       self.view_receipt_btn = self.ui.create_button_grid(self.action_btn_frame, 'View Receipt', row=0, column=1, padx=10, pady=20, bg="#808080", fg='#ffffff', borderwidth=5, relief='sunken', font=("Comic Sans MS", 10, "bold"))
+       self.mark_paid_btn = self.ui.create_button_grid(self.action_btn_frame, 'Mark as Paid', row=0, column=2, padx=10, pady=20, bg="#24A021", fg='#ffffff', borderwidth=5, relief='sunken', font=("Comic Sans MS", 10, "bold"))
+
+       self.create_invoice_btn = self.ui.create_button_grid(
+           self.action_btn_frame, 
+           'Create Invoice', 
+           row=0, 
+           column=3, 
+           padx=10, 
+           pady=20, 
+           bg="#0080FF", 
+           fg='#ffffff', 
+           borderwidth=5, 
+           relief='sunken', 
+           font=("Comic Sans MS", 10, "bold"),
+           command=self.create_invoice_action
+        )
+       
        self.refresh_btn = self.ui.create_button_grid(self.action_btn_frame, 'Refresh', row=0, column=4, padx=10, pady=20, bg="#0080FF", fg='#ffffff', borderwidth=5, relief='sunken', font=("Comic Sans MS", 10, "bold"))
 
        # list_box
-       self.listbox3 = self.ui.creat_listbox(self.payment_list_frame, 0, 0, 550, 80, '#FFFFFF', '#000000', self.on_listbox3_select_changed, font=("Comic Sans MS", 10))
-       self.items=["item1"]
-       self.on_listbox3_set_items(self.items)
-
-       self.listbox2 = self.ui.creat_listbox(self.part_list_frame, 0, 0, 550, 80, '#FFFFFF', '#000000', self.on_listbox2_select_changed, font=("Comic Sans MS", 10))
+       self.listbox2 = self.ui.creat_listbox(self.part_list_frame, 0, 0, 550, 50, '#FFFFFF', '#000000', self.on_listbox2_select_changed, font=("Comic Sans MS", 10))
        self.items=["item1"]
        self.on_listbox2_set_items(self.items)
 
@@ -477,6 +647,7 @@ class User:
        invoice_id = self.invoice_map.get(index)
 
        if invoice_id:
+           self.current_invoice_id = invoice_id
            self.load_invoice_details(invoice_id)
 
    def on_listbox2_set_items(self,items):
@@ -504,10 +675,12 @@ class User:
        for item in items:
            self.listbox4.insert(tk.END, item)
    def on_listbox4_select_changed(self,event):
-       selected_index = self.listbox4.curselection()
-       if selected_index:
-           selected_item = self.listbox4.get(selected_index)
-           self.ui.show_message(f"{selected_item} selected")
+       selection = self.listbox4.curselection()
+       if not selection:
+           return
+
+       index = selection[0]
+       self.selected_job_id = self.job_map.get(index)
 
 # Functions:
 # button2

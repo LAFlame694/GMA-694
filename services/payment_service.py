@@ -34,6 +34,8 @@ def add_payment(invoice_id: int, amount: float):
     balance = invoice_total - paid_total
 
     status = "PAID" if balance <= 0 else "PARTIAL"
+    if paid_total == 0:
+        status = "PENDING"
 
     cursor.execute("""
         UPDATE invoices
