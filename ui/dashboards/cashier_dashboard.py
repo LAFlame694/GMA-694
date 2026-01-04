@@ -327,6 +327,34 @@ class UI:
 
 # User:
 class User:
+   def mark_as_paid(self):
+       if not hasattr(self, "current_invoice_id"):
+           self.ui.show_message(
+               "Please select an invoice",
+               "No Invoice Selected",
+               style=1
+           )
+           return
+       
+       confirm = messagebox.askyesno(
+           "Confirm Payment",
+           "Mark this invoice as PAID?\n(No payment record will be added)"
+       )
+
+       if not confirm:
+           return
+       
+       from services.invoice_service import update_invoice_status
+
+       success = update_invoice_status(self.current_invoice_id, "PAID")
+
+       if success:
+           self.ui.show_message("Invoice marked as PAID successfully")
+           self.load_invoice_details(self.current_invoice_id)
+           self.load_invoices()
+       else:
+           self.ui.show_message("Failed to update invoice status", style=2)
+
    def record_payment(self):
        if not hasattr(self, "current_invoice_id") or not self.current_invoice_id:
            self.ui.show_message(
@@ -419,6 +447,11 @@ class User:
            job_desc,
            plate
        ) = invoice
+
+       """if status.upper() == "PAID":
+           self.mark_paid_btn.config(state="disabled")
+       else:
+           self.mark_paid_btn.config(state="normal")"""
 
        # update labels
        self.vehicle_plate_label = self.ui.create_label_pack(self.invoice_detail_wrapper, f'Vehicle: {plate}', fg='#000000', font=("Comic Sans MS", 10, "bold"), anchor='w')
@@ -618,7 +651,20 @@ class User:
            command=lambda: open_receipt_window(self.current_invoice_id)
         )
 
-       self.mark_paid_btn = self.ui.create_button_grid(self.action_btn_frame, 'Mark as Paid', row=0, column=2, padx=10, pady=20, bg="#24A021", fg='#ffffff', borderwidth=5, relief='sunken', font=("Comic Sans MS", 10, "bold"))
+       self.mark_paid_btn = self.ui.create_button_grid(
+           self.action_btn_frame, 
+           'Mark as Paid', 
+           row=0, 
+           column=2, 
+           padx=10, 
+           pady=20, 
+           bg="#24A021", 
+           fg='#ffffff', 
+           borderwidth=5, 
+           relief='sunken', 
+           font=("Comic Sans MS", 10, "bold"),
+           command=self.mark_as_paid
+        )
 
        self.create_invoice_btn = self.ui.create_button_grid(
            self.action_btn_frame, 
