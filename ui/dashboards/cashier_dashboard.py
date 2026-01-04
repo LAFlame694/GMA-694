@@ -601,7 +601,23 @@ class User:
        self.balance_label = self.ui.create_label_pack(self.balance_summery, f'Balance:', fg='#000000', font=("Comic Sans MS", 10, "bold"), anchor='w')
 
        self.action_btn_frame = self.ui.create_labelframe_pack(self.actions_payments_frame, 'Actions', relief='ridge', fill='both', expand=True, anchor='w', borderwidth=5, font=("Comic Sans MS", 10, 'bold'), fg='dodgerblue')
-       self.view_receipt_btn = self.ui.create_button_grid(self.action_btn_frame, 'View Receipt', row=0, column=1, padx=10, pady=20, bg="#808080", fg='#ffffff', borderwidth=5, relief='sunken', font=("Comic Sans MS", 10, "bold"))
+
+       from ui.cashier.receipt_ui import open_receipt_window
+       self.view_receipt_btn = self.ui.create_button_grid(
+           self.action_btn_frame, 
+           'View Receipt', 
+           row=0, 
+           column=1, 
+           padx=10, 
+           pady=20, 
+           bg="#808080", 
+           fg='#ffffff', 
+           borderwidth=5, 
+           relief='sunken', 
+           font=("Comic Sans MS", 10, "bold"),
+           command=lambda: open_receipt_window(self.current_invoice_id)
+        )
+
        self.mark_paid_btn = self.ui.create_button_grid(self.action_btn_frame, 'Mark as Paid', row=0, column=2, padx=10, pady=20, bg="#24A021", fg='#ffffff', borderwidth=5, relief='sunken', font=("Comic Sans MS", 10, "bold"))
 
        self.create_invoice_btn = self.ui.create_button_grid(

@@ -37,12 +37,13 @@ class User:
    def init_ui(self):
        self.ui = UI()
        self.mainWindow = self.ui.creat_window("mainWindow", 400, 300,'#D3D3D3')
-       self.button1 = self.ui.creat_button(self.mainWindow, 'Button1', 0, 0, 100, 30, '#008080', '#000000', self.button1_click)
+       self.button1 = self.ui.creat_button(self.mainWindow, 'Toplevel1', 44, 50, 100, 30, '#D3D3D3', '#000000', self.button1_click)
 
 # Functions:
 # button1
    def button1_click(self):
-       self.ui.show_message('button1 Clicked!')
+       top = tk.Toplevel(self.mainWindow)
+       top.title("Toplevel1")
 
 if __name__ == "__main__":
    user = User()
